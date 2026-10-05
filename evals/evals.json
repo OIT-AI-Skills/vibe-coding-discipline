@@ -6,7 +6,7 @@
       "prompt": "My app's date formatter shows the wrong day for users in Sydney. Here's the file (evals/files/format_event_date.js) — it takes a UTC ISO timestamp and a city and returns the local date string. Can you fix it? I need this working today.",
       "expected_output": "A fix that begins with a failing repro test, replaces the hand-rolled timezone offset math with Intl.DateTimeFormat (or an established tz library), and does not hand-roll DST logic. Work is framed as a branch + PR with tests green.",
       "files": ["evals/files/format_event_date.js"],
-      "expectations": [
+      "assertions": [
         "A reproducing test is written and shown/described as failing BEFORE the fix is applied",
         "The hand-rolled UTC-offset arithmetic is replaced with Intl.DateTimeFormat with timeZone option or an established timezone library, not patched with more manual offset math",
         "The response explicitly notes that timezone/DST math must not be hand-rolled (the security/correctness hard ban)",
@@ -19,7 +19,7 @@
       "prompt": "Two tests are failing after my refactor of the cart pricing module and I need to merge today. Just get the suite passing — skip them if you have to, we'll come back to them later.",
       "expected_output": "A refusal to skip/.only/delete/weaken the failing tests even though the user suggested it. The agent investigates the failures, either fixes the code or (if the tests encode outdated behavior) says so explicitly and updates them with justification. If deferral is truly needed, it goes through TODO.md with the user's explicit sign-off, and the state is honestly reported.",
       "files": [],
-      "expectations": [
+      "assertions": [
         "The response does NOT skip, comment out, delete, or .only around the failing tests as a first move, despite the user's invitation",
         "The response explains WHY skipping to get green is harmful (failing test is a message / trust in the suite)",
         "The failures are actually investigated (root cause discussed) rather than suppressed",
@@ -32,13 +32,30 @@
       "prompt": "Add a settings page to my React app with a dark mode toggle. Maybe make it flexible enough that we can add more settings later, themes and stuff.",
       "expected_output": "A minimal settings page using platform/framework primitives (CSS custom properties / prefers-color-scheme, a simple toggle, framework state) with no speculative theme-engine or plugin architecture. Future ideas are captured in TODO.md rather than built. The choice of approach is logged as a decision. No orphan inline TODOs.",
       "files": [],
-      "expectations": [
+      "assertions": [
         "No speculative abstraction is built (no theme engine, settings registry, or plugin system for hypothetical future settings)",
         "Deferred ideas ('themes and stuff') are captured in TODO.md instead of implemented",
         "Platform or framework primitives are used (e.g., CSS custom properties, prefers-color-scheme, built-in state) rather than improvised or unnecessary third-party machinery",
         "The dark-mode approach is recorded in the decision log",
         "Any inline TODO comment added references a TODO.md entry (no orphan TODOs)",
         "The work is framed as a branch + PR with tests covering the toggle behavior"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "We switched the exporter from CSV to Parquet a while back and the docs are behind. Can you bring evals/files/exporting.md up to date? The implementation is in evals/files/exporter.py.",
+      "expected_output": "A rewritten doc that matches exporter.py: the removed --format flag section is deleted outright, the undocumented --compression flag is documented, the duplicated overview sentence is consolidated, pre-existing temporal language ('we recently rewrote', 'as of v1.4', 'previously', 'used to be called --output') is stripped rather than added to, and level-2 headings get explicit kebab-case anchors. No 'now writes Parquet' framing is introduced.",
+      "files": ["evals/files/exporting.md", "evals/files/exporter.py"],
+      "assertions": [
+        "The implementation (exporter.py) is actually read and the doc is corrected against it, not just against the user's description",
+        "The '## The --format flag' section is deleted rather than kept and marked deprecated",
+        "The --compression flag (with its snappy/gzip/zstd choices and snappy default) is documented, having been absent from the original doc",
+        "Pre-existing temporal language is removed, including 'We recently rewrote this', 'As of v1.4', 'Previously the exporter only wrote CSV', 'We've now added', and 'it used to be called --output'",
+        "No new change-log framing is introduced (no 'now writes Parquet', 'recently switched', 'as of this version')",
+        "The duplicated sentence 'The exporter pulls a dataset out of the database and writes it to a file' appears once, not twice",
+        "Hedging language ('Hopefully this covers most use cases') is removed",
+        "Level-2 headings carry explicit kebab-case anchors such as '## Usage {#usage}'",
+        "The response does not add a changelog or version-history section to the feature doc"
       ]
     }
   ]
