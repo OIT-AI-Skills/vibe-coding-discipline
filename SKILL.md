@@ -1,15 +1,23 @@
 ---
 name: vibe-coding-discipline
-description: Engineering discipline and guardrails for AI-assisted ("vibe") coding sessions. Use this skill whenever writing, modifying, or reviewing code in a project context — building features, fixing bugs, refactoring, or setting up a new project. Trigger it even when the user doesn't ask for "best practices" — any request like "add a feature," "fix this bug," "clean this up," "build me an app," or "make this test pass" should follow this skill.
+description: Engineering discipline and guardrails for AI-assisted ("vibe") coding sessions — branch-and-PR flow, honest testing, decision records, present-tense documentation, TODO hygiene, platform-before-custom, and simplicity. Use this skill whenever writing, modifying, reviewing, or documenting code in a project context: building features, fixing bugs, refactoring, updating docs, or setting up a new project. Trigger it even when the user doesn't ask for "best practices" — any request like "add a feature," "fix this bug," "clean this up," "build me an app," "update the docs," or "make this test pass" should follow this skill.
+metadata:
+  version: "2.0"
 ---
 
 # Vibe-Coding Discipline
 
-You are the engineer in this collaboration. The user is directing the work, but they may not be reviewing every line — which means the quality bar is on you. This skill exists because coding agents (including you) have well-known failure modes: quietly weakening tests to get green, improvising code that a library already provides, gold-plating simple requests, and leaving a trail of undocumented decisions. The rules below are the antidote. They are not bureaucracy; each one prevents a specific, common failure.
+You are the engineer in this collaboration. The user is directing the work, but they may not be reviewing every line — which means the quality bar is on you. This skill exists because coding agents (including you) have well-known failure modes: quietly weakening tests to get green, improvising code that a library already provides, gold-plating simple requests, and leaving a trail of undocumented decisions and stale docs. The rules below are the antidote. They are not bureaucracy; each one prevents a specific, common failure.
 
 ## Core principle: leave the campsite better
 
-Every session should end with the codebase more trustworthy than it started: tests that actually verify behavior, decisions written down, loose ends tracked. If you find yourself about to take a shortcut a human teammate would call out in code review, stop and do it properly.
+Every session should end with the codebase more trustworthy than it started: tests that actually verify behavior, decisions written down, docs that match the code, loose ends tracked. If you find yourself about to take a shortcut a human teammate would call out in code review, stop and do it properly.
+
+## Bundled references
+
+Load these only when the trigger applies — they are detail, not preamble:
+
+- **[references/documentation.md](references/documentation.md)** — read before editing or auditing any `.md` doc, README, or architecture page. Contains the temporal-language audit, anchor conventions, section-sizing rules, and the doc quality checklist.
 
 ---
 
@@ -17,7 +25,7 @@ Every session should end with the codebase more trustworthy than it started: tes
 
 Work happens on branches, never directly on `main`. Whatever the environment — VS Code, an agentic IDE, or plain git — the branch-and-PR flow is the unit of work.
 
-- **One branch = one coherent change.** A feature, a bug fix, a refactor. If you notice a second, unrelated problem mid-task, don't fix it inline — add it to `TODO.md` (see §4) and stay on mission.
+- **One branch = one coherent change.** A feature, a bug fix, a refactor. If you notice a second, unrelated problem mid-task, don't fix it inline — add it to `TODO.md` (see §5) and stay on mission.
 - **Open a PR for every change**, even small ones. The PR description is where you explain *what* changed and *why* — write it for a reviewer who hasn't seen the conversation.
 - **Keep commits small and messages honest.** Each commit should be a step a reviewer can follow. Never bundle a sneaky behavior change into a "formatting" commit.
 - **Never force-push over history you didn't write**, and never rewrite shared history to hide a mistake. Fix forward with a new commit.
@@ -51,16 +59,31 @@ These are the moves that destroy trust in an AI-assisted codebase. Do not do the
 
 If a test is genuinely wrong (it encodes outdated behavior), the honest move is to *say so explicitly*, explain why, get the user's confirmation if the behavior change is significant, and update the test alongside the code — in the same commit, with the reasoning in the commit message.
 
-## 3. Documenting design and architecture decisions
+## 3. Decision records
 
 Vibe-coded projects rot fast when the "why" lives only in a chat transcript that gets deleted. Capture decisions in the repo.
 
 - Maintain a lightweight decision log — `docs/decisions.md` or one-file-per-decision ADRs (`docs/adr/0001-use-sqlite.md`), whichever the project already uses. If neither exists and you make your first significant decision, create `docs/decisions.md`.
 - **What counts as a decision worth logging:** choice of framework/library/storage, API shape, data model, auth approach, anything you'd have to explain to a new teammate, and anything where the user picked between options you presented.
 - **Format: short.** Date, decision, 1-3 sentences of context, alternatives considered, why this one won. Five lines beats zero lines; don't write essays.
-- When you *change* a prior decision, don't edit history — add a new entry that supersedes the old one, so the trail shows how thinking evolved.
+- **Supersede, don't rewrite.** When you change a prior decision, add a new entry that marks the old one superseded. The decision log is the one place where history is the point — it shows how thinking evolved. Everywhere else (§4), docs describe only the present.
 
-## 4. TODO discipline
+## 4. Documentation that describes the present
+
+Docs rot faster than code in AI-assisted projects, because each session cheerfully appends "now supports X" and never deletes the stale paragraph above it. After a few sessions the docs read as an archaeological record and nobody trusts them. The fix: **docs describe the current system, not the sequence of changes that produced it.**
+
+When you change behavior, update the docs that describe it **in the same PR**. Then:
+
+- **Write in the present tense about what IS.** "The CLI accepts `--timeout`." Not "we recently added `--timeout`" or "as of v2.1, `--timeout` is now supported." Change history belongs in git log, the decision log, and release notes — not in a feature description.
+- **Verify against the code before you write.** Read the implementation the doc describes; don't document what you assume or what the user asked for. A confidently wrong doc is worse than a missing one, because it stops the reader from going to look.
+- **One canonical home per fact.** If the same thing is explained in two places, one copy will drift and you won't know which. Keep the authoritative version and link to it from the other.
+- **Delete what's no longer true.** Completed migration notes, removed flags, "coming soon" sections for work that shipped or was abandoned. Removing a stale paragraph is worth as much as adding an accurate one.
+- **Make sections self-contained and anchored.** A reader — or an agent grepping for one topic — should be able to land on a single section and understand it without reading the whole file. 20-50 lines per section is a good target; split a 200-line section that covers five topics.
+- **Say less.** Prefer the shortest accurate description. Don't document what the language or framework already documents; document what *this project* does that a newcomer would get wrong.
+
+Before finishing any non-trivial doc edit, work through **[references/documentation.md](references/documentation.md)**: it has the temporal-language audit (with greps), the anchor naming and granularity conventions, and the red flags that mean a section should be split or deleted.
+
+## 5. TODO discipline
 
 Ideas and issues surface constantly mid-task. Capture them without derailing.
 
@@ -69,7 +92,7 @@ Ideas and issues surface constantly mid-task. Capture them without derailing.
 - **Review `TODO.md` at the start of each phase** — new feature, new session, new milestone. Ask: is anything here now urgent? Done and removable? Obsolete? A TODO list nobody reads is a graveyard; the review is what keeps it a backlog.
 - Entries get *removed* when done, not checked off and left to accumulate. Git history remembers.
 
-## 5. Use the platform before you build
+## 6. Use the platform before you build
 
 Improvised implementations of solved problems are where vibe-coded projects accumulate their worst bugs. Follow this preference order, and only move down a level when the current level genuinely can't do the job:
 
@@ -90,7 +113,7 @@ Some things must never be hand-rolled, no matter how simple they look. Use vette
 
 These look easy and are famously not. A subtly wrong `verifySession()` or hand-rolled timezone offset is a security incident or data-corruption bug waiting for production. If the user explicitly asks you to hand-roll one of these, explain the risk and recommend the library alternative before proceeding.
 
-## 6. Simplicity: YAGNI, DRY, and the courage to delete
+## 7. Simplicity: YAGNI, DRY, and the courage to delete
 
 - **YAGNI (You Aren't Gonna Need It):** Build what was asked, not what might someday be asked. No speculative config options, plugin systems, abstraction layers, or "flexibility" nobody requested. If you think a future need is real, note it in `TODO.md` or the decision log — don't build it now.
 - **DRY, applied with judgment:** Extract duplication when the copies must change together. But two similar-looking blocks that will evolve independently are not duplication — premature abstraction is worse than a little repetition. Rule of thumb: tolerate two, refactor at three.
@@ -98,7 +121,7 @@ These look easy and are famously not. A subtly wrong `verifySession()` or hand-r
 - **Delete dead code, don't comment it out.** Commented-out blocks and unused functions are noise that misleads future readers. Git history is the archive.
 - **After making it work, make it simple.** A quick pass after green tests — collapse needless indirection, inline single-use helpers, remove leftover debug scaffolding — is cheap now and expensive later.
 
-## 7. General safeguards
+## 8. General safeguards
 
 Failure modes that don't fit the sections above but bite constantly:
 
@@ -114,14 +137,15 @@ Failure modes that don't fit the sections above but bite constantly:
 
 ## Session checklist
 
-At the start of a phase: review `TODO.md`; skim the decision log; confirm the branch matches the task.
+**At the start of a phase:** review `TODO.md`; skim the decision log; confirm the branch matches the task.
 
-Before opening/updating a PR:
+**Before opening or updating a PR:**
 
 - [ ] Full test suite run and green — with no skipped/`.only`'d/weakened tests
 - [ ] New behavior covered by tests; bug fixes include the repro test
+- [ ] Significant decisions logged; prior decisions superseded, not edited away
+- [ ] Docs touching changed behavior updated in this PR — present tense, verified against the code, stale text deleted
 - [ ] No orphan inline TODOs; `TODO.md` updated
-- [ ] Significant decisions logged
 - [ ] Custom code justified where a platform/library option existed
 - [ ] Dead code deleted; debug scaffolding removed
 - [ ] PR description explains what and why for a cold reader
